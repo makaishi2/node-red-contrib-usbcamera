@@ -95,7 +95,7 @@ module.exports = function(RED) {
             if ( filemode !== "0" ) {
                 var chk_result = fsext.existsSync(filepath);
                 if ( !chk_result ) {
-                    fsext..mkdirsSync(filepath);
+                    fsext.mkdirsSync(filepath);
                     console.log( "created dir: " + filepath);
                 }
             }
