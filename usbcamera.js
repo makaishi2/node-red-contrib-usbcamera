@@ -93,8 +93,11 @@ module.exports = function(RED) {
             }
             filefqn = filepath + filename;
             if ( filemode !== "0" ) {
-                var chk_result = fs.existsSync(filepath);
-                console.log ( "check dir exist: " + filepath + "  result: " + chk_result);
+                var chk_result = fsext.existsSync(filepath);
+                if ( !chk_result ) {
+                    fsext..mkdirsSync(filepath);
+                    console.log( "created dir: " + filepath);
+                }
             }
             if (RED.settings.verbose) { node.log("usbcamera:"+filefqn); }
 
@@ -120,40 +123,40 @@ module.exports = function(RED) {
             
             var retry = 0;
             (function () {
-            var callee = arguments.callee;
-            var Webcam = NodeWebcam.create( opts );
-            //Will automatically append location output type 
-            Webcam.capture( filefqn, function( err, data ) {
-                if ( err ) {
-                    retry = retry + 1;
-                    if ( retry < 5 ) {
-                        console.log( "retry: " + retry);
-                        setTimeout(callee, 2000);
+                var callee = arguments.callee;
+                var Webcam = NodeWebcam.create( opts );
+                //Will automatically append location output type 
+                Webcam.capture( filefqn, function( err, data ) {
+                    if ( err ) {
+                        retry = retry + 1;
+                        if ( retry < 5 ) {
+                            console.log( "retry: " + retry);
+                            setTimeout(callee, 2000);
+                            return;
+                        }
+                        console.error("USB Camera error: "+ err);
+                        msg.payload = {error: "USB Camera error: "+ err};
+                        node.status({});
+                        node.send(msg);
                         return;
                     }
-                    console.error("USB Camera error: "+ err);
-                    msg.payload = {error: "USB Camera error: "+ err};
+                    msg.payload = data;
+                    if ( filemode === "0" ) {
+                        msg.filename = "";
+                        msg.fileformat = "";
+                        msg.filepath = "";
+                        console.log("USB Camera: written to buffer with success! retry=" + retry);
+                    } else {
+                        msg.filename = filename;
+                        msg.filepath = filepath;
+                        msg.fileformat = fileformat;
+                        console.log("USB Camera: written to " + data + " with success! retry=" + retry);
+                    }
                     node.status({});
                     node.send(msg);
-                    return;
-                }
-                msg.payload = data;
-                if ( filemode === "0" ) {
-                    msg.filename = "";
-                    msg.fileformat = "";
-                    msg.filepath = "";
-                    console.log("USB Camera: written to buffer with success! retry=" + retry);
-                } else {
-                    msg.filename = filename;
-                    msg.filepath = filepath;
-                    msg.fileformat = fileformat;
-                    console.log("USB Camera: written to " + data + " with success! retry=" + retry);
-                }
-                node.status({});
-                node.send(msg);
-                Webcam.clear();
-                console.log( "camera node end");
-            });
+                    Webcam.clear();
+                    console.log( "camera node end");
+                });
             })();
         });
     }
