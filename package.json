@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:makaishi2/node-red-contrib-usbcamera"
+    "url": "git+https://github.com/makaishi2/node-red-contrib-usbcamera.git"
   },
   "author": "M. Akaishi",
   "license": "Apache-2.0"
